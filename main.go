@@ -23,8 +23,10 @@ func main() {
 
   m.Map(dbmap)
 
-  m.Get("/posts", router.HandlePosts)
-  m.Get("/posts/:id", router.HandlePost)
+  m.Group("/posts", func(r martini.Router) {
+    r.Get("", router.GetPosts)
+    r.Get("/:id", router.GetPost)
+  })
 
   log.Fatal(http.ListenAndServe("localhost:3000", m))
 }
