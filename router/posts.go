@@ -2,6 +2,8 @@ package router
 
 import (
   "log"
+  "net/http"
+  "strconv"
 
   "github.com/go-martini/martini"
   "github.com/martini-contrib/render"
@@ -12,12 +14,16 @@ import (
   "../models"
 )
 
-func GetPosts(r render.Render, dbmap *gorp.DbMap) {
+func GetPosts(args martini.Params, r render.Render, dbmap *gorp.DbMap, req *http.Request) {
   var posts []models.Post
 
-  _, err := dbmap.Select(&posts, "SELECT * FROM posts")
+  page, perPage := HandlePageParams(req)
 
-  log.Println(posts)
+  postsSql := &models.AllPosts {Page: page, PerPage: perPage}
+
+  _, err := dbmap.Select(&posts, postsSql.GetAllPosts())
+
+  log.Printf("%#v", posts)
 
   if(err != nil) {
     log.Fatal("Something went wrong")
@@ -46,4 +52,28 @@ func GetPost(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
   } else {
     r.JSON(200, post)
   }
+}
+
+func HandlePageParams(req *http.Request) (int, int) {
+  var perPage int
+  var page    int
+  var err     error
+
+  args := req.URL.Query()
+
+  if (args["per_page"] != nil) {
+    perPage, err = strconv.Atoi(args["per_page"][0])
+    if err != nil { perPage = models.PostPerPage }
+  } else {
+    perPage = models.PostPerPage
+  }
+
+  if (args["page"] != nil) {
+    page, err = strconv.Atoi(args["page"][0])
+    if err != nil { page = 1 }
+  } else {
+    page = 1
+  }
+
+  return page, perPage
 }
