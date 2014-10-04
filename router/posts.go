@@ -54,6 +54,22 @@ func GetPost(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
   }
 }
 
+func CreatePost(post models.Post, r render.Render, dbmap *gorp.DbMap) {
+  log.Printf("%#v", post)
+
+  err := dbmap.Insert(&post)
+  if(err != nil) {
+    log.Fatal("Something went wrong", err)
+    jsonError := &models.JSONError{
+      Error: "err",
+    }
+
+    r.JSON(404, jsonError)
+  } else {
+    r.JSON(200, post)
+  }
+}
+
 func HandlePageParams(req *http.Request) (int, int) {
   var perPage int
   var page    int
