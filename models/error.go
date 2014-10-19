@@ -1,5 +1,5 @@
 package models
 
 type JSONError struct {
-  Error string `json:"error"`
+	Error string `json:"error"`
 }
